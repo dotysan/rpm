@@ -28,8 +28,8 @@
 
 Summary: Implementation of IEEE 802.1ab (LLDP)
 Name: lldpd
-Version: 0.5.1
-Release: 1%{?dist}
+Version: 0.5.2
+Release: 0%{?dist}.gk1
 License: MIT
 Group: System Environment/Daemons
 URL: https://trac.luffy.cx/lldpd/
@@ -196,6 +196,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Thu Jan 27 2011 Curtis Doty <Curtis@GreenKey.net>
+- [0.5.2] attempt to rebuild on Fedora
+
 * Fri Jun 11 2010 Vincent Bernat <bernat@luffy.cx> - 0.5.1-1
 - New upstream version
 - Define bcond_without and with macros if not defined to be compatible
