@@ -15,8 +15,8 @@
 %bcond_without dot1
 %bcond_without dot3
 
-# On RHEL 4, disable SNMP, Net-SNMP installation seems broken
-%if 0%{?rhel_version} > 0 && 0%{?rhel_version} < 500
+# On Fedora 13 and RHEL 4, disable SNMP, Net-SNMP installation seems broken
+%if 0%{?rhel_version} > 0 && 0%{?rhel_version} < 500 || 0%{?fedora} == 13
 %bcond_with snmp
 %else
 %bcond_without snmp
@@ -28,8 +28,9 @@
 
 Summary: Implementation of IEEE 802.1ab (LLDP)
 Name: lldpd
-Version: 0.5.2
-Release: 0%{?dist}.gk1
+Version: 0.5.4
+Release: 3.1%{?dist}.gk1
+Epoch: 42
 License: MIT
 Group: System Environment/Daemons
 URL: https://trac.luffy.cx/lldpd/
@@ -182,7 +183,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %dir %_docdir/lldpd
 %doc %_docdir/lldpd/CHANGELOG 
-%doc %_docdir/lldpd/README
+%doc %_docdir/lldpd/README.md
 %_sbindir/lldpd 
 %_sbindir/lldpctl
 %doc %_mandir/man8/lldp*
@@ -196,6 +197,12 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Sep 16 2011 Curtis Doty <Curtis@GreenKey.net>
+- rebuild on Fedora 15
+
+* Fri Jul 08 2011 Vincent Bernat <bernat@luffy.cx> - 0.5.4-1
+- New upstream version
+
 * Thu Jan 27 2011 Curtis Doty <Curtis@GreenKey.net>
 - [0.5.2] attempt to rebuild on Fedora
 
