@@ -1,0 +1,20 @@
+
+p  RPM Prepare: extract sources and apply patches
+	unset PERL5LIB
+	rpmbuild -bp --nodeps %f
+
+c  RPM Compile: perform build operations (after prepare)
+	unset PERL5LIB
+	rpmbuild -bc %f
+
+i  RPM Install: prepare, compile, install
+	unset PERL5LIB
+	rpmbuild -bi %f
+
+s  RPM Install: short-circuit (without prep/compile)
+	unset PERL5LIB
+	rpmbuild -bi --short-circuit %f
+
+a  RPM Build: all (binary and source)
+	unset PERL5LIB
+	rpmbuild -ba --clean %f
