@@ -29,7 +29,7 @@
 Summary: Implementation of IEEE 802.1ab (LLDP)
 Name: lldpd
 Version: 0.5.4
-Release: 3.1%{?dist}.gk1
+Release: 3.1%{?dist}.gk2
 Epoch: 42
 License: MIT
 Group: System Environment/Daemons
@@ -197,6 +197,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Tue Jul  9 2013 Curtis Doty <Curtis@GreenKey.net>
+- rebuild on CentOS 5.8
+
 * Fri Sep 16 2011 Curtis Doty <Curtis@GreenKey.net>
 - rebuild on Fedora 15
 
