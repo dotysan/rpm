@@ -1,18 +1,18 @@
 %define libbase fuzzy
 %define libname lib%{libbase}
 
-Name:		ssdeep
-Version:	2.10
-Release:	0%{?dist}
+Name:       ssdeep
+Version:    2.10
+Release:    0%{?dist}
 
-Summary:	a program for computing context triggered piecewise hashes
-Group:		Applications/Engineering
-License:	GPLv2
+Summary:    a program for computing context triggered piecewise hashes
+Group:      Applications/Engineering
+License:    GPLv2
 
-URL:		http://%{name}.sf.net
-Source00:	%{name}-%{version}.tar.gz
+URL:        http://%{name}.sf.net
+Source00:   %{name}-%{version}.tar.gz
 
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildRoot:  %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %description
 Also called fuzzy hashes, context triggered piecewise hashes (CTPH) can
@@ -24,17 +24,17 @@ Developers build with the %{libname}-devel package and deploy with the
 %{libname} package.
 
 %package -n %{libname}
-Summary:  Libraries for packages built against %{name}-devel.
-Group:    System Environment/Libraries
+Summary:    Libraries for packages built against %{name}-devel.
+Group:      System Environment/Libraries
 
 %description -n %{libname}
 This package contains the library files necessary for programs that
 dynamically link to %{libname} from %{name}.
 
 %package -n %{libname}-devel
-Summary:  Libraries and header files for %{name} development
-Group:    Development/Libraries
-Requires: %{name} = %{version}-%{release}
+Summary:    Libraries and header files for %{name} development
+Group:      Development/Libraries
+Requires:   %{name} = %{version}-%{release}
 
 %description -n %{libname}-devel
 This package contains the header and library files necessary for
