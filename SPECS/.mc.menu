@@ -1,20 +1,49 @@
+shell_patterns=0
+# use regular expressions
 
++ ! t t
+@  Do something on the current file
+	CMD=%{Enter command}
+	$CMD %f
++ t t
+@  Do something on the tagged files
+	set %t; CMD=%{Enter command}
+	while [ -n "$1" ]
+	do	$CMD "$1"
+		shift
+	done
+
++ f \.spec$
 p  RPM Prepare: extract sources and apply patches
-	unset PERL5LIB
 	rpmbuild -bp --nodeps %f
 
++ f \.spec$
 c  RPM Compile: perform build operations (after prepare)
 	unset PERL5LIB
+	# also disable local::lib
+	unset PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT
+	# finally sanitize ~, local, sbin, ccache, etc. from path
+	PATH=/usr/bin:/bin
 	rpmbuild -bc %f
 
++= f \.spec$
 i  RPM Install: prepare, compile, install
 	unset PERL5LIB
+	# also disable local::lib
+	unset PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT
+	# finally sanitize ~, local, sbin, ccache, etc. from path
+	PATH=/usr/bin:/bin
 	rpmbuild -bi %f
 
++ f \.spec$
 s  RPM Install: short-circuit (without prep/compile)
-	unset PERL5LIB
 	rpmbuild -bi --short-circuit %f
 
++ f \.spec$
 a  RPM Build: all (binary and source)
 	unset PERL5LIB
+	# also disable local::lib
+	unset PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT
+	# finally sanitize ~, local, sbin, ccache, etc. from path
+	PATH=/usr/bin:/bin
 	rpmbuild -ba --clean %f
