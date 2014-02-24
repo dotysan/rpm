@@ -29,18 +29,14 @@ RETVAL=0
 prog="lldpd"
 binary=/usr/sbin/lldpd
 pidfile=/var/run/lldpd.pid
-chroot=/var/run/lldpd
 lockfile=/var/lock/subsys/$prog
 
-build_chroot()
-{
-        oldumask=$(umask)
-        umask 022
-        [ -d $chroot/etc ] || mkdir -p $chroot/etc
-        [ -f $chroot/etc/localtime ] || [ ! -f /etc/localtime ] || \
-                cp /etc/localtime $chroot/etc/localtime
-        umask $oldumask
-}
+# Determine if we can use the -p option to daemon, killproc, and status.
+# RHEL < 5 can't.
+if status | grep -q -- '-p' 2>/dev/null; then
+    daemonopts="--pidfile $pidfile"
+    pidopts="-p $pidfile"
+fi
 
 start() {
         [ -x $binary ] || exit 5
@@ -49,8 +45,7 @@ start() {
                 RETVAL=1
                 failure
         else
-		build_chroot
-                daemon --pidfile=$pidfile $binary $LLDPD_OPTIONS
+                daemon $daemonopts $binary $LLDPD_OPTIONS
                 RETVAL=$?
                 [ $RETVAL -eq 0 ] && touch $lockfile
         fi;
@@ -64,7 +59,7 @@ stop() {
                 RETVAL=1
                 failure
         else
-                killproc -p $pidfile $binary
+                killproc $pidopts $binary
                 RETVAL=$?
                 [ $RETVAL -eq 0 ] && rm -f $lockfile
         fi;
@@ -83,7 +78,7 @@ condrestart(){
 }
 
 rh_status_q(){
-    status $prog >/dev/null 2>&1
+    status $pidopts $prog >/dev/null 2>&1
 }
 
 case "$1" in
@@ -115,7 +110,7 @@ case "$1" in
 	RETVAL=$?
 	;;
   status)
-        status $prog
+        status $pidopts $prog
 	RETVAL=$?
         ;;
   *)

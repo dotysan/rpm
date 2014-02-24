@@ -28,16 +28,18 @@
 
 Summary: Implementation of IEEE 802.1ab (LLDP)
 Name: lldpd
-Version: 0.5.4
-Release: 3.1%{?dist}.gk2
+Version: 0.7.7
+Release: 0%{?dist}.gk1
 Epoch: 42
 License: MIT
 Group: System Environment/Daemons
-URL: https://trac.luffy.cx/lldpd/
-Source0: http://www.luffy.cx/lldpd/%{name}-%{version}.tar.gz 
+URL: http://vincentbernat.github.com/lldpd/
+Source0: http://media.luffy.cx/files/lldpd/%{name}-%{version}.tar.gz
 Source1: lldpd.init%{?suse_version:.suse}
 Source2: lldpd.sysconfig
 
+BuildRequires: pkgconfig
+BuildRequires: readline-devel
 %if %{with snmp}
 BuildRequires: net-snmp-devel
 BuildRequires: openssl-devel
@@ -49,6 +51,7 @@ BuildRequires: libxml2-devel
 %if 0%{?suse_version}
 PreReq: %fillup_prereq %insserv_prereq pwdutils
 %else
+Requires(pre): /usr/sbin/groupadd /usr/sbin/useradd
 Requires(post): chkconfig
 Requires(preun): chkconfig
 Requires(preun): initscripts
@@ -71,8 +74,21 @@ to adjacent network devices.
 This daemon is also able to deal with CDP, FDP, SONMP and EDP
 protocol. It also handles LLDP-MED extension.
 
+%package devel
+Summary:  Implementation of IEEE 802.1ab - Tools and header files for developers
+Group:    Development/Libraries
+Requires: lldpd = %{version}-%{release}
+
+%description devel
+This package is required to develop alternate clients for lldpd.
+
 %prep
 %setup -q
+# RPATHs aren't allowed in Fedora. And ./configure doesn't apparently
+# support --disable-rpath so we force an autoreconf to avoid the dreaded:
+# ERROR   0001: file '/usr/sbin/lldpcli' contains a standard rpath '/usr/lib64' in [/usr/lib64]
+./autogen.sh
+
 %build
 %configure \
 %if %{with snmp}
@@ -119,8 +135,10 @@ protocol. It also handles LLDP-MED extension.
    --with-privsep-user=%lldpd_user \
    --with-privsep-group=%lldpd_group \
    --with-privsep-chroot=%lldpd_chroot \
+   --with-systemdsystemunitdir=no \
    --prefix=/usr --localstatedir=%lldpd_chroot --sysconfdir=/etc --libdir=%{_libdir} \
    --docdir=%{_docdir}/lldpd
+#   --disable-rpath \
 
 [ -f /usr/include/net-snmp/agent/struct.h ] || touch src/struct.h
 make %{?_smp_mflags}
@@ -147,13 +165,14 @@ if getent passwd %lldpd_user >/dev/null 2>&1 ; then : ; else \
  -c "LLDP daemon" -d %lldpd_chroot %lldpd_user 2> /dev/null \
  || exit 1 ; fi
 
-
 %if 0%{?suse_version}
 # Service management for SuSE
 
 %post
+/sbin/ldconfig
 %{fillup_and_insserv lldpd}
 %postun
+/sbin/ldconfig
 %restart_on_update lldpd
 %insserv_cleanup
 %preun
@@ -163,10 +182,12 @@ if getent passwd %lldpd_user >/dev/null 2>&1 ; then : ; else \
 # Service management for Redhat/Centos
 
 %post
+/sbin/ldconfig
 /sbin/chkconfig --add lldpd
 %postun
+/sbin/ldconfig
 if [ "$1" -ge  "1" ]; then
-   /sbin/service lldpd >/dev/null 2>&1 || :
+   /sbin/service lldpd condrestart >/dev/null 2>&1 || :
 fi
 %preun
 if [ "$1" = "0" ]; then
@@ -181,24 +202,68 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%dir %_docdir/lldpd
-%doc %_docdir/lldpd/CHANGELOG 
-%doc %_docdir/lldpd/README.md
-%_sbindir/lldpd 
-%_sbindir/lldpctl
-%doc %_mandir/man8/lldp*
+%dir %{_docdir}/lldpd
+%doc %{_docdir}/lldpd/NEWS
+%doc %{_docdir}/lldpd/ChangeLog
+%doc %{_docdir}/lldpd/README.md
+%doc %{_docdir}/lldpd/CONTRIBUTE.md
+%{_sbindir}/lldpd
+%{_sbindir}/lldpctl
+%{_sbindir}/lldpcli
+%{_libdir}/liblldpctl.so.*
+%doc %{_mandir}/man8/lldp*
 %dir %attr(750,root,root) %lldpd_chroot
-%config %{_initrddir}/lldpd
-%attr(755,root,root) %{_initrddir}/*
+%config %attr(755,root,root) %{_initrddir}/lldpd
 %if 0%{?suse_version}
 %attr(644,root,root) /var/adm/fillup-templates/sysconfig.lldpd
 %else
 %config(noreplace) /etc/sysconfig/lldpd
 %endif
 
+%files devel
+%defattr(-,root,root)
+%{_libdir}/liblldpctl.so
+%{_libdir}/liblldpctl.a
+%{_libdir}/liblldpctl.la
+%{_libdir}/pkgconfig/lldpctl.pc
+%{_includedir}/lldpctl.h
+%{_includedir}/lldp-const.h
+
 %changelog
+* Sun Feb 23 2014 Curtis Doty <Curtis@GreenKey.net>
+- Merge with upstream and rebuild on Fedora.
+- Workaround rpath build errors.
+
+* Fri Nov 10 2013 Vincent Bernat <bernat@luffy.cx> - 0.7.7-1
+- New upstream version.
+
+* Fri Jul 12 2013 Vincent Bernat <bernat@luffy.cx> - 0.7.6-1
+- New upstream version.
+
 * Tue Jul  9 2013 Curtis Doty <Curtis@GreenKey.net>
-- rebuild on CentOS 5.8
+- [0.5.4] rebuild on CentOS 5.8
+
+* Sat Jun 22 2013 Vincent Bernat <bernat@luffy.cx> - 0.7.5-1
+- New upstream version.
+
+* Sun May 12 2013 Vincent Bernat <bernat@luffy.cx> - 0.7.3-1
+- New upstream version.
+
+* Fri Apr 19 2013 Vincent Bernat <bernat@luffy.cx> - 0.7.2-1
+- New upstream version.
+
+* Sat Jan 12 2013 Vincent Bernat <bernat@luffy.cx> - 0.7.1-1
+- New upstream version.
+
+* Sun Jan 06 2013 Vincent Bernat <bernat@luffy.cx> - 0.7.0-1
+- New upstream version.
+- Requires readline-devel.
+- Ships lldpcli.
+
+* Wed Sep 27 2012 Vincent Bernat <bernat@luffy.cx> - 0.6.1-1
+- New upstream version
+- Do not require libevent, use embedded copy.
+- Provide a -devel package.
 
 * Fri Sep 16 2011 Curtis Doty <Curtis@GreenKey.net>
 - rebuild on Fedora 15
