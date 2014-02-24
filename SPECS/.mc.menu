@@ -13,9 +13,18 @@ shell_patterns=0
 		shift
 	done
 
+= t d
+x  Compress the current subdirectory (tar.xz)
+	Pwd=`basename %d /`
+	echo -n "Name of the compressed file (without extension) [$Pwd]: "
+	read tar
+	if [ "$tar"x = x ]; then tar="$Pwd"; fi
+	cd .. && tar cf - "$Pwd" | xz -f > "$tar.tar.xz" \
+	&& echo "../$tar.tar.xz created."
+
 + f \.spec$
 p  RPM Prepare: extract sources and apply patches
-	rpmbuild -bp --nodeps %f
+	rpmbuild -bp --nodeps %f |tee .rpmbuild-prepare-%f.log
 
 + f \.spec$
 c  RPM Compile: perform build operations (after prepare)
@@ -24,7 +33,7 @@ c  RPM Compile: perform build operations (after prepare)
 	unset PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT
 	# finally sanitize ~, local, sbin, ccache, etc. from path
 	PATH=/usr/bin:/bin
-	rpmbuild -bc %f
+	rpmbuild -bc %f |tee .rpmbuild-compile-%f.log
 
 += f \.spec$
 i  RPM Install: prepare, compile, install
@@ -33,11 +42,11 @@ i  RPM Install: prepare, compile, install
 	unset PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT
 	# finally sanitize ~, local, sbin, ccache, etc. from path
 	PATH=/usr/bin:/bin
-	rpmbuild -bi %f
+	rpmbuild -bi %f |tee .rpmbuild-install-%f.log
 
 + f \.spec$
 s  RPM Install: short-circuit (without prep/compile)
-	rpmbuild -bi --short-circuit %f
+	rpmbuild -bi --short-circuit %f |tee .rpmbuild-install-short-circuit-%f.log
 
 + f \.spec$
 a  RPM Build: all (binary and source)
@@ -46,4 +55,4 @@ a  RPM Build: all (binary and source)
 	unset PERL_LOCAL_LIB_ROOT PERL_MB_OPT PERL_MM_OPT
 	# finally sanitize ~, local, sbin, ccache, etc. from path
 	PATH=/usr/bin:/bin
-	rpmbuild -ba --clean %f
+	rpmbuild -ba --clean %f |tee .rpmbuild-all-%f.log
